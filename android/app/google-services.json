@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "269990914756",
+    "firebase_url": "https://naya-project-3b979.firebaseio.com",
+    "project_id": "naya-project-3b979",
+    "storage_bucket": "naya-project-3b979.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:269990914756:android:befe94dfe9ecf98a767791",
+        "android_client_info": {
+          "package_name": "com.pradipgautam.nayaproject"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "269990914756-g2s8njpd5elekpc1vdciqkt5un5i1gqu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAryoRP9SXZNyJws61bh3_A3DqRI3xTheQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "269990914756-g2s8njpd5elekpc1vdciqkt5un5i1gqu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
