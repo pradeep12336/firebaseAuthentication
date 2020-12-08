@@ -1,8 +1,12 @@
+import 'dart:ui';
+
 import 'package:bot_toast/bot_toast.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:flutter_signin_button/button_list.dart';
+import 'package:flutter_signin_button/button_view.dart';
 import 'package:nayaproject/bloc/confirm_password_bloc.dart';
 import 'package:nayaproject/bloc/obscure_confirm_password_bloc.dart';
 import 'package:nayaproject/bloc/obscutre_text_bloc.dart';
@@ -35,10 +39,10 @@ class _SignInPageState extends State<SignInPage> {
     return BlocListener<SignInBloc, SignInState>(
       listener: (BuildContext context, state) {
         if (state is SubmitSignInState) {
-          // print("sign in data is ${state.signInData.user}");
+          print("sign in data is ${state.signInData.user}");
           if (state.signInData.user.emailVerified) {
             Navigator.push(context, MaterialPageRoute(builder: (_) {
-              return HomePage(user: state.signInData.user);
+              return Container();
             }));
           } else {
             BotToast.showText(text: "Email is Not verified, please verify ");
@@ -88,6 +92,7 @@ class _SignInPageState extends State<SignInPage> {
                 ),
                 BlocBuilder<ObscureTextBloc, bool>(builder: (context, snapshot) {
                   return FormBuilderTextField(
+                    controller: _pcontroller,
                     attribute: 'password',
                     validators: [
                       FormBuilderValidators.required(),
@@ -150,25 +155,68 @@ class _SignInPageState extends State<SignInPage> {
                   ),
                   defaultSelectedCountryIsoCode: 'Np',
                 ),
-                Center(
-                  child: RaisedButton(
-                    child: Text("SignIn"),
-                    onPressed: () {
-                      if (_gkey.currentState.saveAndValidate()) {
-                        final value = _gkey.currentState.value;
-                        print(" sign in value $value");
-                        BlocProvider.of<SignInBloc>(context).add(
-                          SubmitSignInEvent(
-                            email: value['email'],
-                            password: value['password'],
-                            phone: value['phone'],
-                          ),
-                        );
-                        // final cont = _pcontroller.text.trim();
-                        // SingInUser(cont, context);
-                      }
-                    },
-                  ),
+                SizedBox(
+                  height: 20,
+                ),
+                Wrap(
+                  // runSpacing: 10,
+                  children: [
+                    // RaisedButton(
+                    //   child: Text("SignIn"),
+                    //   onPressed: () {
+                    //     if (_gkey.currentState.saveAndValidate()) {
+                    //       final value = _gkey.currentState.value;
+                    //       print(" sign in value $value");
+                    //       BlocProvider.of<SignInBloc>(context).add(
+                    //         SubmitSignInEvent(
+                    //           email: value['email'],
+                    //           password: value['password'],
+                    //           phone: value['phone'],
+                    //         ),
+                    //       );
+                    //       // final cont = _pcontroller.text.trim();
+                    //       // SingInUser(cont, context);
+                    //     }
+                    //   },
+                    // ),
+                    SignInButton(
+                      Buttons.Email,
+                      onPressed: () {
+                        {
+                          if (_gkey.currentState.saveAndValidate()) {
+                            final value = _gkey.currentState.value;
+                            print(" sign in value $value");
+                            BlocProvider.of<SignInBloc>(context).add(
+                              SubmitSignInEvent(
+                                email: value['email'],
+                                password: value['password'],
+                                phone: value['phone'],
+                              ),
+                            );
+                            // final cont = _pcontroller.text.trim();
+                            // SingInUser(cont, context);
+                          }
+                        }
+                      },
+                    ),
+                    SignInButton(
+                      Buttons.Facebook,
+                      onPressed: () {
+                        Navigator.of(context).pushReplacement(MaterialPageRoute(
+                          builder: (context) => HomePage(),
+                        ));
+                      },
+                    ),
+                    RaisedButton(
+                      child: Text('Continue With Phone Number'),
+                      onPressed: () {
+                        if (_gkey.currentState.saveAndValidate()) {
+                          final value = _gkey.currentState.value;
+                          verifyPhoneNumber(context, phone: value['phone']);
+                        }
+                      },
+                    ),
+                  ],
                 ),
                 SizedBox(
                   height: 20,
@@ -231,6 +279,65 @@ class _SignInPageState extends State<SignInPage> {
     );
   }
 
+  void verifyPhoneNumber(BuildContext context, {String phone}) async {
+    final formKey = GlobalKey<FormBuilderState>();
+
+    await firebaseAuth.verifyPhoneNumber(
+      phoneNumber: phone,
+      verificationCompleted: (PhoneAuthCredential authCredential) async {},
+      verificationFailed: (FirebaseAuthException authException) {
+        print(authException.message);
+      },
+      codeSent: (String verificationId, [int forceResendingToken]) async {
+        await showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: Text("insert otp"),
+                content: FormBuilder(
+                  autovalidateMode: AutovalidateMode.always,
+                  key: formKey,
+                  child: FormBuilderTextField(
+                    attribute: 'otpCode',
+                    validators: [
+                      FormBuilderValidators.required(),
+                      FormBuilderValidators.numeric(),
+                    ],
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+                actions: [
+                  FlatButton(
+                    child: Text("submit"),
+                    onPressed: () async {
+                      if (formKey.currentState.saveAndValidate()) {
+                        PhoneAuthCredential credential = PhoneAuthProvider.credential(
+                          verificationId: verificationId,
+                          smsCode: formKey.currentState.value['otpCode'],
+                        );
+                        await firebaseAuth.signInWithCredential(credential);
+                      }
+                    },
+                  ),
+                  FlatButton(
+                    child: Text("Cancel"),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  )
+                ],
+              );
+            });
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        verificationId = verificationId;
+        print(verificationId);
+        print("Time out");
+      },
+      timeout: Duration(seconds: 60),
+    );
+  }
+
   // Future SingInUser(phone, BuildContext context) async {
   //   firebaseAuth.verifyPhoneNumber(
   //     phoneNumber: phone,
@@ -265,7 +372,7 @@ class _SignInPageState extends State<SignInPage> {
   //                       Navigator.push(
   //                           context,
   //                           MaterialPageRoute(
-  //                             builder: (_) => HomePage(user: user),
+  //                             builder: (_) => HomePage(),
   //                           ));
   //                     }
   //                   },

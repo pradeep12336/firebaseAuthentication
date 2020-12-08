@@ -22,6 +22,7 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
         Map<String, dynamic> data = {
           'name': event.name,
           'email': event.email,
+          'phone': event.phone,
         };
         DataModel dataModel = DataModel.fromMap(data);
         await firestoreProvider.insertDataToFirestore(dataModel);

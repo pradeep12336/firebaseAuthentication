@@ -15,7 +15,11 @@ class SignInBloc extends Bloc<SignInEvent, SignInState> {
     if (event is SubmitSignInEvent) {
       yield LoaderSignInState();
       try {
-        UserCredential signinData = await firebaseAuthProvider.SignIn(email: event.email, pass: event.password, phone: event.phone);
+        UserCredential signinData = await firebaseAuthProvider.SignIn(
+          email: event.email,
+          pass: event.password,
+          phone: event.phone,
+        );
         await signinData.user.sendEmailVerification();
         yield SubmitSignInState(signInData: signinData);
       } catch (e) {

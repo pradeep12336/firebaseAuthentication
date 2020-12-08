@@ -30,7 +30,7 @@ dependencies:
   cupertino_icons: ^1.0.1
   firebase_auth: ^0.18.3+1
   cloud_firestore:
-  firebase_core: ^0.5.2+1
+  firebase_core: ^0.5.3
   firebase_storage: ^5.1.0
   flutter_form_builder: ^3.14.0
   flutter_bloc:
@@ -38,6 +38,8 @@ dependencies:
   rxdart:
   equatable:
   bot_toast: ^3.0.5
+  flutter_signin_button: ^1.1.0
+  flutter_login_facebook: ^0.4.0+1
 
 
 

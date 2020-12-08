@@ -25,8 +25,7 @@ class RegistrationPage extends StatelessWidget {
       listener: (BuildContext context, RegState) {
         if (RegState is OnDataRegistrationState) {
           BotToast.showText(text: "Registration Is Done");
-        } else {
-          BotToast.showText(text: "this email is Already Registered by   Othres users");
+          Navigator.pop(context);
         }
       },
       child: Scaffold(
@@ -51,7 +50,7 @@ class RegistrationPage extends StatelessWidget {
                     child: BlocBuilder<OnChnagedNameBloc, bool>(builder: (context, nameBool) {
                       return FormBuilderTextField(
                         onChanged: (value) {
-                          BlocProvider.of<OnChnagedNameBloc>(context).add(!nameBool);
+                          BlocProvider.of<OnChnagedNameBloc>(context).add(value.toString());
                         },
                         attribute: "name",
                         validators: [
@@ -76,7 +75,7 @@ class RegistrationPage extends StatelessWidget {
                             hintText: "Enter the User Name",
                             labelText: "User Name",
                             filled: true,
-                            fillColor: nameBool ? Colors.white : Colors.teal.withOpacity(0.4)),
+                            fillColor: !nameBool ? Colors.white : Colors.teal.withOpacity(0.4)),
                       );
                     }),
                   ),
@@ -85,7 +84,7 @@ class RegistrationPage extends StatelessWidget {
                     child: BlocBuilder<OnChangedEmailBloc, bool>(builder: (context, EmailBool) {
                       return FormBuilderTextField(
                         onChanged: (value) {
-                          BlocProvider.of<OnChangedEmailBloc>(context).add(!EmailBool);
+                          BlocProvider.of<OnChangedEmailBloc>(context).add(value.toString());
                         },
                         attribute: "email",
                         validators: [FormBuilderValidators.required(), FormBuilderValidators.email()],
@@ -93,7 +92,7 @@ class RegistrationPage extends StatelessWidget {
                           hintText: "Enter the Email id",
                           labelText: "User Email",
                           filled: true,
-                          fillColor: EmailBool ? Colors.white : Colors.teal[100],
+                          fillColor: !EmailBool ? Colors.white : Colors.teal[100],
                           disabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: Colors.black),
                           ),
@@ -120,7 +119,7 @@ class RegistrationPage extends StatelessWidget {
                         child: BlocBuilder<OnChangedPasswordBloc, bool>(builder: (context, PassswordBool) {
                           return FormBuilderTextField(
                             attribute: "password",
-                            controller: _pController,
+                            // controller: _pController,
                             validators: [
                               FormBuilderValidators.required(),
                               FormBuilderValidators.maxLength(12),
@@ -130,7 +129,7 @@ class RegistrationPage extends StatelessWidget {
                                 hintText: "Password",
                                 labelText: "Password",
                                 filled: true,
-                                fillColor: PassswordBool ? Colors.white : Colors.teal[100],
+                                fillColor: !PassswordBool ? Colors.white : Colors.teal[100],
                                 disabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(color: Colors.black),
                                 ),
@@ -154,7 +153,7 @@ class RegistrationPage extends StatelessWidget {
                                   },
                                 )),
                             onChanged: (string) {
-                              BlocProvider.of<OnChangedPasswordBloc>(context).add(!PassswordBool);
+                              BlocProvider.of<OnChangedPasswordBloc>(context).add(string.toString());
                               BlocProvider.of<ConfirmPasswordBloc>(context).add(string);
                             },
                             obscureText: obscuretext,
@@ -171,7 +170,7 @@ class RegistrationPage extends StatelessWidget {
                           return FormBuilderTextField(
                             attribute: "cPassword",
                             onChanged: (value) {
-                              BlocProvider.of<OnChangedConfirmPasswordBloc>(context).add(!CPasswordBool);
+                              BlocProvider.of<OnChangedConfirmPasswordBloc>(context).add(value.toString());
                             },
                             controller: _cpController,
                             validators: [
@@ -188,7 +187,7 @@ class RegistrationPage extends StatelessWidget {
                               hintText: "Re_Enter password",
                               labelText: "Confirm Password",
                               filled: true,
-                              fillColor: CPasswordBool ? Colors.white : Colors.teal[100],
+                              fillColor: !CPasswordBool ? Colors.white : Colors.teal[100],
                               disabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide(color: Colors.black),
                               ),
@@ -228,7 +227,7 @@ class RegistrationPage extends StatelessWidget {
                     child: BlocBuilder<OnChangedPhoneBloc, bool>(builder: (context, snapshot) {
                       return FormBuilderPhoneField(
                         onChanged: (value) {
-                          BlocProvider.of<OnChangedPhoneBloc>(context).add(!snapshot);
+                          BlocProvider.of<OnChangedPhoneBloc>(context).add(value.toString());
                         },
                         attribute: 'phone',
                         validators: [FormBuilderValidators.required()],
@@ -237,7 +236,7 @@ class RegistrationPage extends StatelessWidget {
                           labelText: "Phone Number",
                           hintText: "Phone Number",
                           filled: true,
-                          fillColor: snapshot ? Colors.white : Colors.teal[100],
+                          fillColor: !snapshot ? Colors.white : Colors.teal[100],
                           disabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: Colors.black),
                           ),
@@ -270,8 +269,10 @@ class RegistrationPage extends StatelessWidget {
                           onPressed: () {
                             _rKey.currentState.saveAndValidate();
                             final datass = _rKey.currentState.value;
-
-                            BlocProvider.of<RegistrationBloc>(context).add(SubmitRegistrationEvent(name: datass['name'], email: datass['email'], password: datass['password']));
+                            print("datas is $datass");
+                            BlocProvider.of<RegistrationBloc>(context).add(
+                              SubmitRegistrationEvent(name: datass['name'], email: datass['email'], password: datass['password'], phone: datass['phone']),
+                            );
                           },
                           child: Text(
                             "Register",
