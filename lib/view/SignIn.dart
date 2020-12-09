@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:flutter_login_facebook/flutter_login_facebook.dart';
 import 'package:flutter_signin_button/button_list.dart';
 import 'package:flutter_signin_button/button_view.dart';
 import 'package:nayaproject/bloc/confirm_password_bloc.dart';
@@ -21,8 +22,6 @@ import 'package:nayaproject/bloc/sign_in_BLOC/sign_in_bloc.dart';
 import 'package:nayaproject/bloc/sign_in_BLOC/sign_in_event.dart';
 import 'package:nayaproject/view/RegistrationPage.dart';
 
-import 'home_page.dart';
-
 class SignInPage extends StatefulWidget {
   @override
   _SignInPageState createState() => _SignInPageState();
@@ -33,7 +32,7 @@ class _SignInPageState extends State<SignInPage> {
   TextEditingController _cController = TextEditingController();
   TextEditingController _pcontroller = TextEditingController();
   final GlobalKey<FormBuilderState> _gkey = GlobalKey<FormBuilderState>();
-
+  bool isFacebookLoginIn = false;
   @override
   Widget build(BuildContext context) {
     return BlocListener<SignInBloc, SignInState>(
@@ -66,8 +65,8 @@ class _SignInPageState extends State<SignInPage> {
                 FormBuilderTextField(
                   attribute: 'email',
                   validators: [
-                    FormBuilderValidators.required(),
-                    FormBuilderValidators.email(),
+                    //   FormBuilderValidators.required(),
+                    //   FormBuilderValidators.email(),
                   ],
                   decoration: InputDecoration(
                     hintText: 'pradipgautam@email.com ',
@@ -95,9 +94,9 @@ class _SignInPageState extends State<SignInPage> {
                     controller: _pcontroller,
                     attribute: 'password',
                     validators: [
-                      FormBuilderValidators.required(),
+                      // FormBuilderValidators.required(),
                       // FormBuilderValidators.numeric(),
-                      FormBuilderValidators.maxLength(10),
+                      // FormBuilderValidators.maxLength(10),
                     ],
                     decoration: InputDecoration(
                         hintText: 'Passsword',
@@ -132,7 +131,8 @@ class _SignInPageState extends State<SignInPage> {
                 FormBuilderPhoneField(
                   attribute: 'phone',
                   validators: [
-                    FormBuilderValidators.required(),
+                    //  FormBuilderValidators.required(),
+                    FormBuilderValidators.maxLength(14, errorText: "phone number cannot be greTHER THAN 10")
                   ],
                   decoration: InputDecoration(
                     hintText: "Phone Number",
@@ -158,27 +158,8 @@ class _SignInPageState extends State<SignInPage> {
                 SizedBox(
                   height: 20,
                 ),
-                Wrap(
-                  // runSpacing: 10,
+                Column(
                   children: [
-                    // RaisedButton(
-                    //   child: Text("SignIn"),
-                    //   onPressed: () {
-                    //     if (_gkey.currentState.saveAndValidate()) {
-                    //       final value = _gkey.currentState.value;
-                    //       print(" sign in value $value");
-                    //       BlocProvider.of<SignInBloc>(context).add(
-                    //         SubmitSignInEvent(
-                    //           email: value['email'],
-                    //           password: value['password'],
-                    //           phone: value['phone'],
-                    //         ),
-                    //       );
-                    //       // final cont = _pcontroller.text.trim();
-                    //       // SingInUser(cont, context);
-                    //     }
-                    //   },
-                    // ),
                     SignInButton(
                       Buttons.Email,
                       onPressed: () {
@@ -193,8 +174,6 @@ class _SignInPageState extends State<SignInPage> {
                                 phone: value['phone'],
                               ),
                             );
-                            // final cont = _pcontroller.text.trim();
-                            // SingInUser(cont, context);
                           }
                         }
                       },
@@ -202,12 +181,21 @@ class _SignInPageState extends State<SignInPage> {
                     SignInButton(
                       Buttons.Facebook,
                       onPressed: () {
-                        Navigator.of(context).pushReplacement(MaterialPageRoute(
-                          builder: (context) => HomePage(),
-                        ));
+                        facebookLogins(context).then((user) {
+                          if (user != null) {
+                            print("Login is successfully");
+                          }
+                        });
+
+                        // Navigator.of(context).pushReplacement(
+                        //   MaterialPageRoute(
+                        //     builder: (context) => HomePage(),
+                        //   ),
+                        // );
                       },
                     ),
                     RaisedButton(
+                      elevation: 5,
                       child: Text('Continue With Phone Number'),
                       onPressed: () {
                         if (_gkey.currentState.saveAndValidate()) {
@@ -277,6 +265,39 @@ class _SignInPageState extends State<SignInPage> {
         )),
       ),
     );
+  }
+
+  Future<User> facebookLogins(BuildContext context) async {
+    User currentUsers;
+    try {
+      FacebookLoginResult facebookLoginResult = await FacebookLogin().logIn(permissions: [
+        FacebookPermission.publicProfile,
+        FacebookPermission.email,
+      ]);
+
+      if (facebookLoginResult.status == FacebookLoginStatus.Success) {
+        FacebookAccessToken facebookAccessToken = facebookLoginResult.accessToken;
+        final AuthCredential credential = FacebookAuthProvider.credential(facebookAccessToken.token);
+        UserCredential userCredential = await firebaseAuth.signInWithCredential(credential);
+        final User users = userCredential.user;
+        print("current users ingfo is ${users.photoURL}");
+        assert(users.email != null);
+        assert(users.displayName != null);
+        assert(!users.isAnonymous);
+        assert(await users.getIdToken() != null);
+        currentUsers = await firebaseAuth.currentUser;
+        assert(users.uid == currentUsers.uid);
+        return showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog();
+            });
+
+        // return currentUsers;
+      }
+    } catch (e) {
+      print("error in facebookLogin$e");
+    }
   }
 
   void verifyPhoneNumber(BuildContext context, {String phone}) async {
